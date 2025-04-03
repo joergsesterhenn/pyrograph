@@ -3,8 +3,8 @@ from pygame import Surface
 from pygame.color import Color
 from pygame.event import Event
 
-from pyrograph.stator import Stator
 from pyrograph.rotor import Rotor
+from pyrograph.stator import Stator
 
 
 def main():
@@ -19,10 +19,14 @@ def main():
     while running:
         for event in pygame.event.get():
             check_for_quit(event)
+        keys = pygame.key.get_pressed()
+        rotor.check_for_change(keys)
+        stator.check_for_change(keys)
         draw_surface(surface)
         stator.draw()
-        rotor.rotate(time)
-        pygame.display.flip()
+        if not keys[pygame.K_SPACE]:
+            rotor.rotate(time)
+            pygame.display.flip()
         time += 1
     pygame.quit()
 

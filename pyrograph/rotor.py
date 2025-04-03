@@ -1,7 +1,10 @@
-import pygame
 from math import cos, sin
+
+import pygame
 from pygame import Surface
 from pygame.color import Color
+from pygame.key import ScancodeWrapper
+
 from pyrograph.stator import Stator
 
 
@@ -59,3 +62,13 @@ class Rotor:
     def draw_line(self):
         if self.line and len(self.line) > 1:
             pygame.draw.lines(self.surface, self.line_color, False, self.line, 1)
+
+    def check_for_change(self, keys: ScancodeWrapper):
+        if keys[pygame.K_LEFT] and self.radius > 5:
+            self.radius -= 1
+            self.line = []
+        if keys[pygame.K_RIGHT] and self.radius < 200:
+            self.radius += 1
+            self.line = []
+        if keys[pygame.K_UP] or keys[pygame.K_DOWN]:
+            self.line = []
