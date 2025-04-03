@@ -1,0 +1,23 @@
+[project]
+name = "pyrograph"
+version = "0.1.0"
+description = "python spirograph"
+authors = [
+    {name = "Jörg Sesterhenn",email = "joerg.sesterhenn@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame (>=2.6.1,<3.0.0)"
+]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.3"
+pytest = "^8.3.5"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
