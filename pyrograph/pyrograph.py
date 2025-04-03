@@ -7,16 +7,15 @@ from pyrograph.rotor import Rotor
 from pyrograph.stator import Stator
 
 
-def main():
+def pyrograph():
     pygame.init()
     pygame.display.set_caption("pyrograph")
     surface: Surface = pygame.display.set_mode([1024, 768])
     draw_surface(surface)
     stator: Stator = Stator(surface, 100)
     rotor: Rotor = Rotor(surface, stator, 75)
-    running: bool = True
     time: int = 0
-    while running:
+    while True:
         for event in pygame.event.get():
             check_for_quit(event)
         keys = pygame.key.get_pressed()
@@ -28,7 +27,6 @@ def main():
             rotor.rotate(time)
             pygame.display.flip()
         time += 1
-    pygame.quit()
 
 
 def check_for_quit(event: Event):
@@ -45,4 +43,4 @@ def draw_surface(
 
 
 if __name__ == "__main__":
-    main()
+    pyrograph()
