@@ -1,4 +1,5 @@
 import pygame
+from math import cos, sin
 from pygame import Surface
 from pygame.color import Color
 from pyrograph.stator import Stator
@@ -27,11 +28,25 @@ class Rotor:
     def center(self) -> tuple[int, int]:
         return (self.center_x, self.center_y)
 
-    def rotate(self):
+    def rotate(self, t: int):
         # move rotor one step along stator
-        self.center_x += 1
-        self.center_y += 1
-        self.line.append(self.center())
+        (x_stator, y_stator) = self.stator.center()
+        self.center_x = x_stator + (self.stator.radius + self.radius) * cos(
+            self.stator.omega * t
+        )
+        self.center_y = y_stator + (self.stator.radius + self.radius) * sin(
+            self.stator.omega * t
+        )
+
+        # Calculate tracing point
+        theta_rotor = (
+            -((self.stator.radius + self.radius) / self.radius) * self.stator.omega * t
+        )
+        (x, y) = self.center()
+        x_line = x + self.radius * cos(theta_rotor)
+        y_line = y + self.radius * sin(theta_rotor)
+
+        self.line.append((x_line, y_line))
         # draw rotor
         self.draw_rotor()
         self.draw_line()

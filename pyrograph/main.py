@@ -15,13 +15,15 @@ def main():
     stator: Stator = Stator(surface, 100)
     rotor: Rotor = Rotor(surface, stator, 75)
     running: bool = True
+    time: int = 0
     while running:
         for event in pygame.event.get():
             check_for_quit(event)
         draw_surface(surface)
         stator.draw()
-        rotor.rotate()
+        rotor.rotate(time)
         pygame.display.flip()
+        time += 1
     pygame.quit()
 
 

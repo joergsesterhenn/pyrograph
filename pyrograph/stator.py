@@ -4,9 +4,10 @@ from pygame.color import Color
 
 
 class Stator:
-    def __init__(self, surface: Surface, radius: int):
+    def __init__(self, surface: Surface, radius: int, omega: float = 0.2):
         self.radius = radius
         self.surface = surface
+        self.omega = omega
 
     def draw(
         self,
