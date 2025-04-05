@@ -5,70 +5,69 @@ from pygame import Surface
 from pygame.color import Color
 from pygame.key import ScancodeWrapper
 
-from pyrograph.stator import Stator
+from pyrograph.circle import Circle
+from pyrograph.line import Line
 
 
-class Rotor:
+class Rotor(Circle):
+    """
+    Rotating object that draws lines.
+    """
+
     def __init__(
         self,
         surface: Surface,
-        stator: Stator,
-        radius: int,
+        parent: Circle,
+        rotor_radius: int,
         line_color=Color("red"),
-        rotor_color=Color("black"),
+        line_width=2,
+        color=Color("black"),
     ):
-        self.surface = surface
-        self.radius = radius
-        self.stator = stator
-        (x, y) = stator.center()
-        y += (stator.radius) + radius
-        self.center_x = x
-        self.center_y = y
-        self.rotor_color = rotor_color
-        self.line_color = line_color
-        self.line: list[int:int] = []
+        x, y = parent.center()
+        y += parent.radius() + rotor_radius
+        super().__init__(surface, (x, y), rotor_radius, 0.02, color)
+        self.line: Line = Line(surface=surface, color=line_color, width=line_width)
+        self.parent: Circle = parent
+        parent.add_child(self)
 
     def center(self) -> tuple[int, int]:
-        return (self.center_x, self.center_y)
+        return self._center
 
     def rotate(self, t: int):
-        # move rotor one step along stator
-        (x_stator, y_stator) = self.stator.center()
-        self.center_x = x_stator + (self.stator.radius + self.radius) * cos(
-            self.stator.omega * t
+        self.parent.draw()
+        # move rotor one step along parent
+        (x_parent, y_parent) = self.parent.center()
+
+        center_x = x_parent + (self.parent.radius() + self.radius()) * cos(
+            self.parent.angular_velocity() * t
         )
-        self.center_y = y_stator + (self.stator.radius + self.radius) * sin(
-            self.stator.omega * t
+        center_y = y_parent + (self.parent.radius() + self.radius()) * sin(
+            self.parent.angular_velocity() * t
         )
+        self._center = (center_x, center_y)
+        self.draw()
 
         # Calculate tracing point
-        theta_rotor = (
-            -((self.stator.radius + self.radius) / self.radius) * self.stator.omega * t
+        self._angular_velocity = (
+            -((self.parent.radius() + self.radius()) / self.radius())
+            * self.parent.angular_velocity()
+            * t
         )
         (x, y) = self.center()
-        x_line = x + self.radius * cos(theta_rotor)
-        y_line = y + self.radius * sin(theta_rotor)
+        x_line = x + self.radius() * cos(self.angular_velocity())
+        y_line = y + self.radius() * sin(self.angular_velocity())
 
-        self.line.append((x_line, y_line))
-        # draw rotor
-        self.draw_rotor()
-        self.draw_line()
-
-    def draw_rotor(self):
-        pygame.draw.circle(
-            self.surface, self.rotor_color, self.center(), self.radius, 1
-        )
-
-    def draw_line(self):
-        if self.line and len(self.line) > 1:
-            pygame.draw.lines(self.surface, self.line_color, False, self.line, 1)
+        self.line.add(x_line, y_line)
+        self.line.draw()
+        for child in self.children:
+            child.rotate(t)
 
     def check_for_change(self, keys: ScancodeWrapper):
-        if keys[pygame.K_LEFT] and self.radius > 5:
-            self.radius -= 1
-            self.line = []
-        if keys[pygame.K_RIGHT] and self.radius < 200:
-            self.radius += 1
-            self.line = []
+        if keys[pygame.K_LEFT] and self._radius > 5:
+            self._radius -= 1
+            self.line = Line(self.surface, points=[])
+        if keys[pygame.K_RIGHT] and self._radius < 200:
+            self._radius += 1
+            self.line = Line(self.surface, points=[])
         if keys[pygame.K_UP] or keys[pygame.K_DOWN]:
-            self.line = []
+            self.line = Line(self.surface, points=[])
