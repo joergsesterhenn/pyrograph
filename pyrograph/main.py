@@ -1,68 +1,150 @@
+from typing import Optional, Union
 import pygame
-from pygame import Surface
-from pygame.color import Color
-from pygame.event import Event
 import typer
+from pygame.color import Color
 
-from pyrograph.rotor import Rotor
-from pyrograph.stator import Stator
+from pyrograph.model.circle import Circle
+from pyrograph.model.model import (
+    load_model_from_json,
+    save_model_to_json,
+)
+from pyrograph.model.rotor import Rotor
+from pyrograph.model.stator import Stator
+from pyrograph.ui.ui import draw_button, draw_property_editor, draw_text, draw_tree
 
+
+FPS = 60
+START_WIDTH, START_HEIGHT = 1200, 800
+SIDEBAR_WIDTH = 400
+BACKGROUND_COLOR = Color("black")
+SIDEBAR_BACKGROUND_COLOR = Color("grey")
+slider_rects = []
+toggle_rects = []
+color_buttons = []
 app = typer.Typer()
 
 
 @app.command()
 def pyrograph():
+    stators: list[Stator] = [Stator()]
+    selected: Optional[Union[Stator, Rotor]] = None
     pygame.init()
-    pygame.display.set_caption("pyrograph")
-    surface: Surface = pygame.display.set_mode([1024, 768])
+    screen = pygame.display.set_mode((START_WIDTH, START_HEIGHT), pygame.RESIZABLE)
+    pygame.display.set_caption("PyroGraph")
+    main_loop(screen, stators, selected)
+
+
+def draw(surface, stators, t):
+    for stator in stators:
+        stator.draw(surface)
+        for circle in stator.children:
+            circle.draw(surface, t)
+
+
+def main_loop(screen, stators, selected):
+    t = 0
+    running = True
     clock = pygame.time.Clock()
-    draw_surface(surface)
-    stator: Stator = Stator(
-        surface=surface,
-        stator_radius=100,
-        x=surface.get_width() // 2,
-        y=surface.get_height() // 2,
-    )
-    rotor: Rotor = Rotor(
-        surface=surface,
-        parent=stator,
-        rotor_radius=75,
-        color=Color("black"),
-        line_width=3,
-        line_color=Color("red"),
-    )
-    # rotor2: Rotor = Rotor(
-    #     surface=surface,
-    #     parent=rotor,
-    #     rotor_radius=50,
-    #     color=Color("brown"),
-    #     line_width=3,
-    #     line_color=Color("green"),
-    # )
-    time: int = 0
-    while True:
+
+    while running:
+        screen.fill(BACKGROUND_COLOR)
+
+        width, height = screen.get_size()
+        draw_area = pygame.Rect(0, 0, width - SIDEBAR_WIDTH, height)
+        draw(screen, stators, t)
+
+        # Draw sidebar background
+        sidebar = pygame.Rect(width - SIDEBAR_WIDTH, 0, SIDEBAR_WIDTH, height)
+        pygame.draw.rect(screen, SIDEBAR_BACKGROUND_COLOR, sidebar)
+        draw_text(screen, "...::: Editor :::...", sidebar.x + 10, 10)
+        y_offset = draw_tree(screen, stators, sidebar.x + 10, 40, selected)
+
+        draw_text(screen, "Properties:", sidebar.x + 10, y_offset + 10)
+        draw_property_editor(screen, selected, sidebar.x + 10, y_offset + 40)
+
+        # Add buttons
+        add_stator_btn = draw_button(
+            screen, "+ Stator", sidebar.x + 10, height - 80, 100, 30
+        )
+        add_rotor_btn = draw_button(
+            screen, "+ Rotor", sidebar.x + 120, height - 80, 100, 30
+        )
+
         for event in pygame.event.get():
-            check_for_quit(event)
-        keys = pygame.key.get_pressed()
-        # rotor.check_for_change(keys)
-        # stator.check_for_change(keys)
-        draw_surface(surface)
-        if not keys[pygame.K_SPACE]:
-            stator.draw()
-            rotor.rotate(time)
-            pygame.display.flip()
-            time += 1
-        clock.tick(3)
+            if event.type == pygame.QUIT:
+                running = False
 
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.key == pygame.K_s:
+                    save_model_to_json(stators, "model.json")
+                elif event.key == pygame.K_l:
+                    stators = load_model_from_json("model.json")
+                    selected = None
 
-def check_for_quit(event: Event):
-    if event.type == pygame.QUIT:
-        pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mx, my = event.pos
 
+                if draw_area.collidepoint(mx, my):
+                    if isinstance(selected, Stator):
+                        selected.x, selected.y = mx, my
 
-def draw_surface(
-    surface: Surface,
-    background_color: Color = Color("white"),
-):
-    surface.fill(background_color)
-    return surface
+                if add_stator_btn.collidepoint(mx, my):
+                    stators.append(Stator())
+
+                if add_rotor_btn.collidepoint(mx, my):
+                    if isinstance(selected, Circle):
+                        selected.children.append(Rotor(parent=selected))
+
+                for stator in stators[:]:
+                    if hasattr(stator, "_ui_rect") and stator._ui_rect.collidepoint(
+                        mx, my
+                    ):
+                        selected = stator
+                    if hasattr(
+                        stator, "_delete_btn"
+                    ) and stator._delete_btn.collidepoint(mx, my):
+                        stators.remove(stator)
+                        if selected == stator:
+                            selected = None
+                    for rotor in stator.children[:]:
+
+                        def check_rotor_click(r, parent_list):
+                            if hasattr(r, "_ui_rect") and r._ui_rect.collidepoint(
+                                mx, my
+                            ):
+                                nonlocal selected
+                                selected = r
+                            if hasattr(r, "_delete_btn") and r._delete_btn.collidepoint(
+                                mx, my
+                            ):
+                                parent_list.remove(r)
+                                if selected == r:
+                                    selected = None
+                            for child in r.children[:]:
+                                check_rotor_click(child, r.children)
+
+                        check_rotor_click(rotor, stator.children)
+
+                for rect, field, min_val, max_val in slider_rects:
+                    if rect.collidepoint(mx, my) and selected:
+                        rel_x = mx - rect.x
+                        pct = rel_x / rect.width
+                        new_val = min_val + pct * (max_val - min_val)
+                        setattr(selected, field, round(new_val, 2))
+
+                for rect, field in toggle_rects:
+                    if rect.collidepoint(mx, my) and selected:
+                        current_val = getattr(selected, field)
+                        setattr(selected, field, not current_val)
+
+                for rect, field, color in color_buttons:
+                    if rect.collidepoint(mx, my) and selected:
+                        setattr(selected, field, color)
+
+        pygame.display.flip()
+        t += 1
+        clock.tick(FPS)
+
+    pygame.quit()
