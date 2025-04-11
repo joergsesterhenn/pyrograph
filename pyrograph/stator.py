@@ -14,20 +14,27 @@ class Stator(Circle):
     def __init__(
         self,
         surface: Surface,
-        stator_radius: int = 100,
-        stator_angular_velocity: float = 0.02,
+        x: float,
+        y: float,
+        stator_radius: float = 100,
+        stator_angular_velocity: float = 0.002,
         color=Color("blue"),
     ):
         super().__init__(
             surface,
             (surface.get_width() // 2, surface.get_height() // 2),
             stator_radius,
-            stator_angular_velocity,
             color,
         )
+        self._angular_velocity = stator_angular_velocity
+        self.x = x
+        self.y = y
 
-    def center(self) -> tuple[int, int]:
-        return (self.surface.get_width() // 2, self.surface.get_height() // 2)
+    def center(self) -> tuple[float, float]:
+        return (self.x, self.y)
+
+    def angular_velocity(self) -> float:
+        return self._angular_velocity
 
     def check_for_change(self, keys: ScancodeWrapper):
         if keys[pygame.K_DOWN] and self._radius > 5:

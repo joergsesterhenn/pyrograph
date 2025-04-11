@@ -1,5 +1,4 @@
-from pygame import Color, Surface
-import pygame
+from pygame import Color, Surface, draw
 
 
 class Line:
@@ -11,17 +10,17 @@ class Line:
         self,
         surface: Surface,
         color: Color = Color("red"),
-        points: list[int:int] = [],
-        width=1,
+        points: list[float:float] = [],
+        width: float = 1,
     ):
-        self.points: list[int:int] = points
+        self.points: list[float:float] = points
         self.color: Color = color
-        self.surface = surface
-        self.width = width
+        self.surface: Surface = surface
+        self.width: float = width
 
-    def add(self, x: int, y: int):
-        self.points.append((x, y))
+    def add(self, point: tuple[float, float]):
+        self.points.append(point)
 
     def draw(self):
         if self.points and len(self.points) > 1:
-            pygame.draw.lines(self.surface, self.color, False, self.points, self.width)
+            draw.lines(self.surface, self.color, False, self.points, self.width)
