@@ -9,6 +9,7 @@ class Stator(Circle):
     x: int = 400  # default screen center
     y: int = 300
     width: int = 0
+    type: str = "stator"
     children: list[Rotor] = Field(default_factory=list)
 
     def get_position(self):

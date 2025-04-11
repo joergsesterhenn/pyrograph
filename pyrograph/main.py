@@ -18,7 +18,7 @@ START_WIDTH, START_HEIGHT = 1200, 800
 SIDEBAR_WIDTH = 400
 BACKGROUND_COLOR = Color("black")
 SIDEBAR_BACKGROUND_COLOR = Color("grey")
-slider_rects = []
+input_boxes = []
 toggle_rects = []
 color_buttons = []
 app = typer.Typer()
@@ -60,7 +60,15 @@ def main_loop(screen, stators, selected):
         y_offset = draw_tree(screen, stators, sidebar.x + 10, 40, selected)
 
         draw_text(screen, "Properties:", sidebar.x + 10, y_offset + 10)
-        draw_property_editor(screen, selected, sidebar.x + 10, y_offset + 40)
+        draw_property_editor(
+            surface=screen,
+            selected_obj=selected,
+            x=sidebar.x + 10,
+            y=y_offset + 40,
+            toggle_rects=toggle_rects,
+            color_buttons=color_buttons,
+            input_boxes=input_boxes,
+        )
 
         # Add buttons
         add_stator_btn = draw_button(
@@ -127,12 +135,12 @@ def main_loop(screen, stators, selected):
 
                         check_rotor_click(rotor, stator.children)
 
-                for rect, field, min_val, max_val in slider_rects:
-                    if rect.collidepoint(mx, my) and selected:
-                        rel_x = mx - rect.x
-                        pct = rel_x / rect.width
-                        new_val = min_val + pct * (max_val - min_val)
-                        setattr(selected, field, round(new_val, 2))
+                # for rect, field, min_val, max_val in input_boxes:
+                #     if rect.collidepoint(mx, my) and selected:
+                #         rel_x = mx - rect.x
+                #         pct = rel_x / rect.width
+                #         new_val = min_val + pct * (max_val - min_val)
+                #         setattr(selected, field, int(new_val))
 
                 for rect, field in toggle_rects:
                     if rect.collidepoint(mx, my) and selected:
@@ -142,7 +150,8 @@ def main_loop(screen, stators, selected):
                 for rect, field, color in color_buttons:
                     if rect.collidepoint(mx, my) and selected:
                         setattr(selected, field, color)
-
+            for box in input_boxes:
+                box.handle_event(event, selected)
         pygame.display.flip()
         t += 1
         clock.tick(FPS)

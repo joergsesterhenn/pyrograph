@@ -6,7 +6,8 @@ from pyrograph.model.circle import Circle
 
 
 class Rotor(Circle):
-    parent: Circle
+    parent: Optional[Circle] = Field(default=None, exclude=True)
+    type: str = "rotor"
     trace_radius: Optional[float] = 50
     inside: bool = False
     line_width: int = 1
@@ -78,5 +79,5 @@ class Rotor(Circle):
         if len(self.trace) > self.line_length:
             self.trace.pop(0)
 
-
-# Rotor.model_rebuild()
+        for circle in self.children:
+            circle.draw(surface, t)

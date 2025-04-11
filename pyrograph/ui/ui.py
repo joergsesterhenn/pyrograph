@@ -91,30 +91,67 @@ def draw_rotor_node(surface, rotor: Rotor, x: int, y: int, label: str, selected)
     return y
 
 
-def draw_property_editor(surface, selected_obj, x, y):
-    global slider_rects, toggle_rects, color_buttons
-    slider_rects = []
-    toggle_rects = []
-    color_buttons = []
+def draw_property_editor(
+    surface, selected_obj, x, y, toggle_rects, color_buttons, input_boxes
+):
     if not selected_obj:
         draw_text(surface, "No item selected", x, y)
         return
     draw_text(surface, f"Editing {type(selected_obj).__name__}", x, y)
     y += 30
     for field_name, value in selected_obj.dict().items():
-        if isinstance(value, (int, float)):
-            min_val = 0 if value == 0 else value * 0.1
-            max_val = value * 10 if value != 0 else 100
-            bar_rect, min_val, max_val = draw_slider(
-                surface, field_name, value, min_val, max_val, x, y
-            )
-            slider_rects.append((bar_rect, field_name, min_val, max_val))
-            y += 50
-        elif isinstance(value, bool):
+        if isinstance(value, bool):
             toggle_rect = draw_toggle(surface, field_name, value, x, y)
             toggle_rects.append((toggle_rect, field_name))
             y += 30
+        elif isinstance(value, (int, float)):
+            draw_text(surface, f"{field_name}:", x, y)
+            input_box = InputBox(x + 100, y, 80, 25, text=str(value), field=field_name)
+            input_boxes.append(input_box)
+            y += 35
         elif field_name == "color":
             buttons = draw_color_picker(surface, field_name, value, x, y)
             color_buttons.extend((btn, field_name, c) for btn, c in buttons)
             y += 50
+    for box in input_boxes:
+        box.draw(surface)
+
+
+class InputBox:
+    def __init__(self, x, y, w, h, text="", field=None):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = LIGHT_GRAY
+        self.text = text
+        self.txt_surface = pygame.font.SysFont(None, 24).render(text, True, BLACK)
+        self.active = False
+        self.field = field
+
+    def handle_event(self, event, selected_obj):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Toggle active state based on mouse click inside box
+            self.active = self.rect.collidepoint(event.pos)
+            self.color = BLUE if self.active else LIGHT_GRAY
+
+        elif event.type == pygame.KEYDOWN and self.active:
+            if event.key == pygame.K_RETURN:
+                try:
+                    val = float(self.text)
+                    setattr(selected_obj, self.field, val)
+                except ValueError:
+                    pass
+                self.active = False
+                self.color = LIGHT_GRAY
+            elif event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            else:
+                self.text += event.unicode
+            self.txt_surface = pygame.font.SysFont(None, 24).render(
+                self.text, True, BLACK
+            )
+
+    def draw(self, surface):
+        # Draw rect and updated text
+        pygame.draw.rect(surface, self.color, self.rect, 2)
+        # Clear previous text by drawing a filled white rect first
+        pygame.draw.rect(surface, WHITE, self.rect.inflate(-4, -4))
+        surface.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
