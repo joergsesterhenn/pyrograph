@@ -4,18 +4,21 @@ from pydantic import Field
 from pyrograph.model.circle import Circle
 from pyrograph.model.rotor import Rotor
 
+TYPE = "stator"
+
 
 class Stator(Circle):
     x: int = 400  # default screen center
     y: int = 300
     width: int = 0
-    type: str = "stator"
+    type: str = TYPE
     children: list[Rotor] = Field(default_factory=list)
 
-    def get_position(self):
-        return self.x, self.y
-
     def draw(self, surface, t=0):
+        self.draw_disc(surface)
+        self.draw_selection(surface)
+
+    def draw_disc(self, surface: pygame.Surface):
         pygame.draw.circle(
             surface,
             pygame.Color(self.color),

@@ -1,0 +1,75 @@
+[
+  {
+    "type": "stator",
+    "x": 1032,
+    "y": 477,
+    "radius": 50.0,
+    "omega": 0.2,
+    "color": "yellow",
+    "width": 0,
+    "children": [
+      {
+        "type": "rotor",
+        "radius": 69.0,
+        "omega": 0.2,
+        "color": "purple",
+        "width": 1,
+        "children": [
+          {
+            "type": "rotor",
+            "radius": 29.0,
+            "omega": 0.2,
+            "color": "blue",
+            "width": 1,
+            "children": [
+              {
+                "type": "rotor",
+                "radius": 66.0,
+                "omega": 0.2,
+                "color": "green",
+                "width": 1,
+                "children": []
+              }
+            ]
+          }
+        ],
+        "trace_radius": 50.0,
+        "inside": false,
+        "line_width": 1,
+        "line_length": 1000
+      }
+    ]
+  },
+  {
+    "type": "stator",
+    "x": 360,
+    "y": 483,
+    "radius": 68.0,
+    "omega": 0.2,
+    "color": "black",
+    "width": 0,
+    "children": [
+      {
+        "type": "rotor",
+        "radius": 50.0,
+        "omega": 0.2,
+        "color": "yellow",
+        "width": 1,
+        "children": [
+          {
+            "type": "rotor",
+            "radius": 64.0,
+            "omega": 0.2,
+            "color": "orange",
+            "width": 1,
+            "children": []
+          }
+        ],
+        "trace_radius": 50.0,
+        "inside": false,
+        "line_width": 1,
+        "line_length": 1000
+      }
+    ]
+  }
+]

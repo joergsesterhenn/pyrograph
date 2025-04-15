@@ -4,18 +4,28 @@ from pydantic import Field
 from math import cos, sin
 from pyrograph.model.circle import Circle
 
+TYPE = "rotor"
+
 
 class Rotor(Circle):
     parent: Optional[Circle] = Field(default=None, exclude=True)
-    type: str = "rotor"
+    type: str = TYPE
     trace_radius: Optional[float] = 50
     inside: bool = False
     line_width: int = 1
     line_length: int = 1000
     trace: list[tuple[float, float]] = Field(default_factory=list, exclude=True)
 
+    def draw(self, surface, t):
+        theta = self.get_theta(t)
+        self.trace_point(theta)
+        self.draw_circle(surface)
+        self.draw_selection(surface)
+        self.draw_rotation_marker(surface, theta)
+        self.draw_line(surface)
+        self.draw_children(surface, t)
+
     def get_theta(self, t):
-        # Resolve parent position
         px, py = self.parent.get_position()
 
         # Rotation direction & distance
@@ -34,19 +44,13 @@ class Rotor(Circle):
         # Rotor's own spin (rolling without slipping)
         return -sign * (distance / self.radius) * self.omega * t
 
-    def get_position(self):
-        return self.x, self.y
-
-    def draw(self, surface, t):
-        theta = self.get_theta(t)
-
-        # Traced point
+    def trace_point(self, theta):
         if self.trace_radius is not None:
             x_trace = self.x + self.trace_radius * cos(theta)
             y_trace = self.y + self.trace_radius * sin(theta)
             self.trace.append((x_trace, y_trace))
 
-        # Circle
+    def draw_circle(self, surface: pygame.Surface):
         pygame.draw.circle(
             surface,
             pygame.Color("white"),
@@ -55,7 +59,7 @@ class Rotor(Circle):
             self.width,
         )
 
-        # Rotation marker
+    def draw_rotation_marker(self, surface: pygame.Surface, theta):
         marker_length = self.radius - 5
         x_marker = self.x + marker_length * cos(theta)
         y_marker = self.y + marker_length * sin(theta)
@@ -67,7 +71,7 @@ class Rotor(Circle):
             2,
         )
 
-        # Trace path
+    def draw_line(self, surface: pygame.Surface):
         if self.trace and len(self.trace) > 1:
             pygame.draw.lines(
                 surface,
@@ -76,8 +80,10 @@ class Rotor(Circle):
                 [(int(x), int(y)) for x, y in self.trace],
                 self.line_width,
             )
+        # trim tail
         if len(self.trace) > self.line_length:
             self.trace.pop(0)
 
+    def draw_children(self, surface, t):
         for circle in self.children:
             circle.draw(surface, t)
