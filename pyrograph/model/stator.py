@@ -15,8 +15,9 @@ class Stator(Circle):
     children: list[Rotor] = Field(default_factory=list)
 
     def draw(self, surface, t=0):
-        self.draw_disc(surface)
-        self.draw_selection(surface)
+        if self.drawn and not self.hidden:
+            self.draw_disc(surface)
+            self.draw_selection(surface)
 
     def draw_disc(self, surface: pygame.Surface):
         pygame.draw.circle(

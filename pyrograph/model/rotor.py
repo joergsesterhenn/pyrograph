@@ -31,11 +31,13 @@ class Rotor(Circle):
 
     def draw(self, surface, t):
         theta = self.get_theta(t)
-        self.trace_point(theta)
-        self.draw_circle(surface)
-        self.draw_selection(surface)
-        self.draw_rotation_marker(surface, theta)
-        self.draw_line(surface)
+        if self.drawn:
+            self.trace_point(theta)
+            if not self.hidden:
+                self.draw_circle(surface)
+                self.draw_selection(surface)
+                self.draw_rotation_marker(surface, theta)
+            self.draw_line(surface)
 
     def get_theta(self, t):
         px, py = self.parent.get_position()
@@ -93,5 +95,5 @@ class Rotor(Circle):
                 self.line_width,
             )
         # trim tail
-        if len(self.trace) > self.line_length:
+        while len(self.trace) > self.line_length:
             self.trace.pop(0)

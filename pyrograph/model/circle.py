@@ -13,9 +13,11 @@ class Circle(BaseModel, ABC):
     x: float = Field(default=0, exclude=True)
     y: float = Field(default=0, exclude=True)
     radius: float = 50
-    omega: float = 0.2
+    omega: float = 0.02
     color: str = "yellow"
     width: int = 1
+    hidden: bool = False
+    drawn: bool = True
     selected: bool = Field(default=False, exclude=True)
     children: list[Circle] = Field(default_factory=list)
 

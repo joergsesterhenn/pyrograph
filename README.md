@@ -15,13 +15,18 @@ python spirograph app.
 | C  | change color to random color    |
 | PageUP  | increase radius    |
 | PageDown  | decrease radius    |
-| +  | increase rotation speed    |
-| -  | decrease rotation speed    |
-| F2 | Save pyrograph as Json    |
-| F4 | Load pyrograph from Json    |
-| F12 | Save current screen as image    |
-| P | Freeze/unfreeze screen    |
-| Esc | Close window    |
+| +  | increase rotation speed 5%    |
+| -  | decrease rotation speed 5%   |
+| *  | increase trace line length 5%    |
+| /  | decrease trace line length 5%    |
+| F2 | save pyrograph as Json    |
+| F4 | load pyrograph from Json    |
+| F12 | save current screen as image    |
+| P | freeze/unfreeze screen    |
+| H | un/hide rotor/stator but keep trace   |
+| D | do (not) draw this stator/rotor and trace  |
+| # | print datamodel state to console for inspection  |
+| Esc | close window    |
 
 ## Features
 - [x] Stators draw a color filled circle on the surface.

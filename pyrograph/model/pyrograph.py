@@ -85,120 +85,146 @@ class PyroGraph(BaseModel):
                 for child in stator.children:
                     child.remove_child(circle)
 
-    def handle_events(self):
+    def handle_events(self) -> bool:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    # quit
+                if not self.handle_key_down(event):
                     return False
-                elif event.key == pygame.K_F2:
-                    # save json
-                    self.save("graphs/model.json")
-                elif event.key == pygame.K_F4:
-                    # load json
-                    self.stators = load_model_from_json("graphs/model.json")
-                    self.unselect()
-                elif event.key == pygame.K_d:
-                    # debug
-                    pprint(self, max_length=5)
-                elif event.key == pygame.K_r:
-                    # add rotor
-                    if isinstance(self.selected(), Circle):
-                        self.selected().children.append(Rotor(parent=self.selected()))
-                elif event.key == pygame.K_s:
-                    # add stator
-                    self.stators.append(Stator())
-                elif event.key == pygame.K_DELETE:
-                    # remove circle
-                    if isinstance(self.selected(), Circle):
-                        self.remove(self.selected())
-                elif event.key == pygame.K_F12:
-                    # save image
-                    pygame.image.save(self.surface, "images/screenshot.jpeg")
-                elif event.key == pygame.K_p:
-                    # un/pause pyrograph
-                    self.paused = not self.paused
-                elif event.key == pygame.K_UP:
-                    # select parent of current selection if available
-                    selected = self.selected()
-                    if isinstance(selected, Rotor):
-                        self.select_circle(selected.parent)
-                elif event.key == pygame.K_DOWN:
-                    # select child of current selection if available
-                    selected = self.selected()
-                    if isinstance(selected, Circle) and len(selected.children) > 0:
-                        self.select_circle(selected.children[0])
-                elif event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                    # select sibiling of current selection if available
-                    selected = self.selected()
-                    if isinstance(selected, Stator):
-                        number_of_children = len(self.stators)
-                        if number_of_children > 1:
-                            selected_index = self.stators.index(selected)
-                            if selected_index > 0 and event.key == pygame.K_LEFT:
-                                self.select_circle(self.stators[selected_index - 1])
-                            elif (
-                                selected_index < number_of_children - 1
-                                and event.key == pygame.K_RIGHT
-                            ):
-                                self.select_circle(self.stators[selected_index + 1])
-                    elif isinstance(selected, Rotor):
-                        number_of_children = len(selected.parent.children)
-                        if number_of_children > 1:
-                            selected_index = selected.parent.children.index(selected)
-                            if selected_index > 0 and event.key == pygame.K_LEFT:
-                                self.select_circle(
-                                    selected.parent.children[selected_index - 1]
-                                )
-                            elif (
-                                selected_index < number_of_children - 1
-                                and event.key == pygame.K_RIGHT
-                            ):
-                                self.select_circle(
-                                    selected.parent.children[selected_index + 1]
-                                )
-                elif event.key == pygame.K_TAB:
-                    # switch between inner/outer mode
-                    selected = self.selected()
-                    if isinstance(selected, Rotor):
-                        selected.inside = not selected.inside
-                elif event.key == pygame.K_c:
-                    # switch between inner/outer mode
-                    selected = self.selected()
-                    if isinstance(selected, Circle):
-                        selected.color = f"#{random.randrange(0x1000000):06x}"
-                elif event.key == pygame.K_PAGEUP:
-                    # switch between inner/outer mode
-                    selected = self.selected()
-                    if isinstance(selected, Circle):
-                        if selected.radius < 500:
-                            selected.radius += 1
-                elif event.key == pygame.K_PAGEDOWN:
-                    # switch between inner/outer mode
-                    selected = self.selected()
-                    if isinstance(selected, Circle):
-                        if selected.radius > 1:
-                            selected.radius -= 1
-
             elif event.type == pygame.MOUSEMOTION:
                 mx, my = event.pos
                 if self.drag:
                     if isinstance(self.selected(), Stator):
                         self.selected().x, self.selected().y = mx, my
-
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.drag = False
-
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
-
-                # select circle if hit
                 if self.select_at_position(event.pos):
                     self.drag = True
                 else:
                     self.unselect()
+        return True
+
+    def handle_key_down(self, event) -> bool:
+        if event.key == pygame.K_ESCAPE:
+            # quit
+            return False
+        elif event.key == pygame.K_F2:
+            # save json
+            self.save("graphs/model.json")
+        elif event.key == pygame.K_F4:
+            # load json
+            self.stators = load_model_from_json("graphs/model.json")
+            self.unselect()
+        elif event.key == pygame.K_HASH:
+            # debug
+            pprint(self, max_length=5)
+        elif event.key == pygame.K_r:
+            # add rotor
+            if isinstance(self.selected(), Circle):
+                self.selected().children.append(Rotor(parent=self.selected()))
+        elif event.key == pygame.K_s:
+            # add stator
+            self.stators.append(Stator())
+        elif event.key == pygame.K_DELETE:
+            # remove circle
+            if isinstance(self.selected(), Circle):
+                self.remove(self.selected())
+        elif event.key == pygame.K_F12:
+            # save image
+            pygame.image.save(self.surface, "images/screenshot.jpeg")
+        elif event.key == pygame.K_p:
+            # un/pause pyrograph
+            self.paused = not self.paused
+        elif event.key == pygame.K_UP:
+            # select parent of current selection if available
+            selected = self.selected()
+            if isinstance(selected, Rotor):
+                self.select_circle(selected.parent)
+        elif event.key == pygame.K_DOWN:
+            # select child of current selection if available
+            selected = self.selected()
+            if isinstance(selected, Circle) and len(selected.children) > 0:
+                self.select_circle(selected.children[0])
+        elif event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+            # select sibiling of current selection if available
+            selected = self.selected()
+            if isinstance(selected, Stator):
+                number_of_children = len(self.stators)
+                if number_of_children > 1:
+                    selected_index = self.stators.index(selected)
+                    if selected_index > 0 and event.key == pygame.K_LEFT:
+                        self.select_circle(self.stators[selected_index - 1])
+                    elif (
+                        selected_index < number_of_children - 1
+                        and event.key == pygame.K_RIGHT
+                    ):
+                        self.select_circle(self.stators[selected_index + 1])
+            elif isinstance(selected, Rotor):
+                number_of_children = len(selected.parent.children)
+                if number_of_children > 1:
+                    selected_index = selected.parent.children.index(selected)
+                    if selected_index > 0 and event.key == pygame.K_LEFT:
+                        self.select_circle(selected.parent.children[selected_index - 1])
+                    elif (
+                        selected_index < number_of_children - 1
+                        and event.key == pygame.K_RIGHT
+                    ):
+                        self.select_circle(selected.parent.children[selected_index + 1])
+        elif event.key == pygame.K_TAB:
+            # switch between inner/outer mode
+            selected = self.selected()
+            if isinstance(selected, Rotor):
+                selected.inside = not selected.inside
+        elif event.key == pygame.K_c:
+            # switch between inner/outer mode
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                selected.color = f"#{random.randrange(0x1000000):06x}"
+        elif event.key == pygame.K_PAGEUP:
+            # switch between inner/outer mode
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                if selected.radius < 500:
+                    selected.radius += 1
+        elif event.key == pygame.K_PAGEDOWN:
+            # switch between inner/outer mode
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                if selected.radius > 1:
+                    selected.radius -= 1
+        elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+            # slow down rotation
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                selected.omega *= 0.95
+        elif event.key in (pygame.K_PLUS, pygame.K_KP_PLUS):
+            # speed up rotation
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                selected.omega *= 1.05
+        elif event.key in (pygame.K_KP_DIVIDE,):
+            # decrease trace length
+            selected = self.selected()
+            if isinstance(selected, Rotor):
+                selected.line_length = round(selected.line_length * 0.95)
+        elif event.key in (pygame.K_KP_MULTIPLY,):
+            # increase trace length
+            selected = self.selected()
+            if isinstance(selected, Rotor):
+                selected.line_length = round(selected.line_length * 1.05)
+        elif event.key == pygame.K_h:
+            # un/hide
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                selected.hidden = not selected.hidden
+        elif event.key == pygame.K_d:
+            # do (not) draw
+            selected = self.selected()
+            if isinstance(selected, Circle):
+                selected.drawn = not selected.drawn
         return True
 
     def save(self, filename: str):
