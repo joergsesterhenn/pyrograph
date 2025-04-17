@@ -38,6 +38,43 @@ class Circle(BaseModel, ABC):
             < self.radius
         )
 
+    def get_selected_child(self) -> Circle | None:
+        if self.selected:
+            return self
+        else:
+            for child in self.children:
+                selected = child.get_selected_child()
+                if selected is not None:
+                    return selected
+
+    def select_child(self, circle: Circle) -> Circle | None:
+        if self == circle:
+            self.selected = True
+            return self
+        else:
+            for child in self.children:
+                selected = child.select_child(circle)
+                if selected is not None:
+                    return selected
+
+    def get_child_encircling_position(
+        self, position: tuple[float, float]
+    ) -> Circle | None:
+        if self.encircles(position):
+            return self
+        else:
+            for child in self.children:
+                selected = child.get_child_encircling_position(position)
+                if selected is not None:
+                    return selected
+
+    def unselect(self):
+        if self.selected:
+            self.selected = False
+        else:
+            for child in self.children:
+                child.unselect()
+
     def __eq__(self, value):
         return self.id == value.id
 

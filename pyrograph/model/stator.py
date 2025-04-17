@@ -8,7 +8,7 @@ TYPE = "stator"
 
 
 class Stator(Circle):
-    x: int = 400  # default screen center
+    x: int = 400
     y: int = 300
     width: int = 0
     type: str = TYPE

@@ -20,7 +20,7 @@ python spirograph app.
 | F2 | Save pyrograph as Json    |
 | F4 | Load pyrograph from Json    |
 | F12 | Save current screen as image    |
-| Pause | Freeze/unfreeze screen    |
+| P | Freeze/unfreeze screen    |
 | Esc | Close window    |
 
 ## Features

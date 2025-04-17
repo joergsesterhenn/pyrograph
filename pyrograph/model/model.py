@@ -6,11 +6,6 @@ from pyrograph.model.rotor import Rotor
 from pyrograph.model.stator import Stator
 
 
-def save_model_to_json(stators: list[Stator], filename: str):
-    with open(filename, "w") as file:
-        json.dump([stator.model_dump() for stator in stators], file, indent=2)
-
-
 def load_model_from_json(filename: str) -> list[Stator]:
     with open(filename, "r") as file:
         data = json.load(file)

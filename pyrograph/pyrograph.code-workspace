@@ -4,5 +4,15 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"editor.defaultFormatter": "charliermarsh.ruff",
+		"editor.formatOnSave": true,
+		"notebook.defaultFormatter": "charliermarsh.ruff",
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"files.exclude": {
+			"__pycache__": true
+		}
+	}
 }

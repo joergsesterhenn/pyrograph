@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Optional
 from pydantic import Field
@@ -10,11 +11,23 @@ TYPE = "rotor"
 class Rotor(Circle):
     parent: Optional[Circle] = Field(default=None, exclude=True)
     type: str = TYPE
-    trace_radius: Optional[float] = 50
     inside: bool = False
     line_width: int = 1
     line_length: int = 1000
     trace: list[tuple[float, float]] = Field(default_factory=list, exclude=True)
+    children: list[Rotor] = Field(default_factory=list)
+
+    def remove_child(self, circle: Circle):
+        if self == circle:
+            self.parent.children.remove(circle)
+        else:
+            for child in self.children:
+                child.remove_child(circle)
+
+    def draw_children(self, surface, t):
+        self.draw(surface, t)
+        for child in self.children:
+            child.draw_children(surface, t)
 
     def draw(self, surface, t):
         theta = self.get_theta(t)
@@ -23,7 +36,6 @@ class Rotor(Circle):
         self.draw_selection(surface)
         self.draw_rotation_marker(surface, theta)
         self.draw_line(surface)
-        self.draw_children(surface, t)
 
     def get_theta(self, t):
         px, py = self.parent.get_position()
@@ -45,9 +57,9 @@ class Rotor(Circle):
         return -sign * (distance / self.radius) * self.omega * t
 
     def trace_point(self, theta):
-        if self.trace_radius is not None:
-            x_trace = self.x + self.trace_radius * cos(theta)
-            y_trace = self.y + self.trace_radius * sin(theta)
+        if self.radius is not None:
+            x_trace = self.x + self.radius * cos(theta)
+            y_trace = self.y + self.radius * sin(theta)
             self.trace.append((x_trace, y_trace))
 
     def draw_circle(self, surface: pygame.Surface):
@@ -83,7 +95,3 @@ class Rotor(Circle):
         # trim tail
         if len(self.trace) > self.line_length:
             self.trace.pop(0)
-
-    def draw_children(self, surface, t):
-        for circle in self.children:
-            circle.draw(surface, t)
