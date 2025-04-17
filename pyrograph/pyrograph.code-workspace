@@ -12,7 +12,7 @@
 			"editor.defaultFormatter": "vscode.json-language-features"
 		},
 		"files.exclude": {
-			"__pycache__": true
+			"**/__pycache__": true
 		}
 	}
 }
